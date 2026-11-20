@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Piyano Öğren</title>
+<style>
+:root{--bg:#f6f4ef;--fg:#1c1b19;--card:#fff;--acc:#2563eb;--ok:#16a34a;--bad:#dc2626;--mut:#6b675f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17161a;--fg:#f1efe9;--card:#232228;--mut:#a09b92}}
+:root[data-theme="dark"]{--bg:#17161a;--fg:#f1efe9;--card:#232228;--mut:#a09b92}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:14px;max-width:760px;margin:0 auto}
+h1{font-size:20px;margin:4px 0 12px}
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px}
+select,button{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid #8884;background:var(--card);color:var(--fg)}
+button.p{background:var(--acc);color:#fff;border:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#big{font-size:56px;font-weight:700;text-align:center;line-height:1.1}
+#sub{text-align:center;color:var(--mut);min-height:22px}
+#bar{height:8px;border-radius:4px;background:#8883;overflow:hidden;margin-top:10px}
+#bar i{display:block;height:100%;background:var(--acc);width:0}
+#heard{text-align:center;font-size:18px;min-height:26px;margin-top:6px}
+#kbw{overflow-x:auto}
+#kb{position:relative;height:190px;min-width:560px;user-select:none;touch-action:manipulation}
+#kb div{position:absolute;top:0;box-sizing:border-box;border-radius:0 0 6px 6px}
+.w{height:100%;background:#fff;border:1px solid #333;color:#444;display:flex;align-items:flex-end;justify-content:center;font-size:11px;padding-bottom:4px}
+.b{height:62%;background:#151515;z-index:2}
+.w.nx{background:#dbe7ff}.b.nx{background:#3b5aa8}
+.w.tg{background:#3b82f6;color:#fff}.b.tg{background:#2563eb}
+.w.ok{background:#4ade80!important}.b.ok{background:#16a34a!important}
+.w.no{background:#fca5a5!important}.b.no{background:#dc2626!important}
+label{color:var(--mut);font-size:14px}
+</style>
+</head>
+<body>
+<h1>🎹 Piyano Öğren</h1>
+<div class="card">
+  <div class="row">
+    <select id="song"></select>
+    <button id="mic" class="p">Dinlemeyi başlat</button>
+    <button id="reset">Baştan</button>
+    <button id="skip">Atla</button>
+  </div>
+  <div id="msg" style="color:var(--mut);font-size:14px;margin-top:8px">Telefonu piyanonun yanına koy, dinlemeyi başlat ve mavi tuşu çal. Tuşlara dokunarak da deneyebilirsin.</div>
+</div>
+<div class="card">
+  <div id="sub"></div>
+  <div id="big">–</div>
+  <div id="heard"></div>
+  <div id="bar"><i></i></div>
+  <div id="stat" style="text-align:center;color:var(--mut);font-size:14px;margin-top:8px"></div>
+</div>
+<div class="card" id="kbw"><div id="kb"></div></div>
+<label><input type="checkbox" id="loose" checked> Oktav fark etmesin (başlangıç için önerilir)</label>
+
+<script>
+const N=['Do','Do♯','Re','Re♯','Mi','Fa','Fa♯','Sol','Sol♯','La','La♯','Si'];
+const nm=m=>N[m%12]+(Math.floor(m/12)-1);
+const SONGS=[
+ {n:'Sıcak Çörek (en kolay)',s:[64,62,60,64,62,60,60,60,60,60,62,62,62,62,64,62,60]},
+ {n:'Neşeye Övgü',s:[64,64,65,67,67,65,64,62,60,60,62,64,64,62,62,64,64,65,67,67,65,64,62,60,60,62,64,62,60,60]},
+ {n:'Twinkle Twinkle (Ah Küçük Yıldız)',s:[60,60,67,67,69,69,67,65,65,64,64,62,62,60,67,67,65,65,64,64,62,67,67,65,65,64,64,62,60,60,67,67,69,69,67,65,65,64,64,62,62,60]},
+ {n:'İyi ki Doğdun (Happy Birthday)',s:[67,67,69,67,72,71,67,67,69,67,74,72,67,67,79,76,72,71,69,77,77,76,72,74,72]}
+];
+const $=id=>document.getElementById(id);
+let si=0,pos=0,st={};
+try{st=JSON.parse(localStorage.getItem('piyano')||'{}')}catch(e){}
+const save=()=>{try{localStorage.setItem('piyano',JSON.stringify(st))}catch(e){}};
+const cur=()=>SONGS[si].s;
+const sel=$('song');
+SONGS.forEach((x,i)=>{const o=document.createElement('option');o.value=i;o.textContent=x.n;sel.appendChild(o)});
+si=st.last||0;sel.value=si;pos=(st[si]&&st[si].pos)||0;
+
+const kb=$('kb'),keys={};
+const isB=m=>[1,3,6,8,10].includes(m%12);
+let wi=0;const W=100/14;
+for(let m=60;m<=83;m++){
+  const d=document.createElement('div');
+  if(!isB(m)){d.className='w';d.style.left=(wi*W)+'%';d.style.width=W+'%';d.textContent=N[m%12];wi++}
+  else{d.className='b';d.style.left=(wi*W-W*0.3)+'%';d.style.width=(W*0.6)+'%'}
+  d.onpointerdown=()=>{heardShow(m);tryNote(m,true)};
+  kb.appendChild(d);keys[m]=d;
+}
+
+function render(){
+  Object.values(keys).forEach(k=>k.classList.remove('tg','nx'));
+  const s=cur();
+  const rec=st[si]||{};
+  $('stat').textContent='Tamamlanma sayısı: '+(rec.done||0);
+  if(pos>=s.length){$('big').textContent='🎉';$('sub').textContent='Şarkı bitti! Tebrikler';$('bar').firstElementChild.style.width='100%';return}
+  keys[s[pos]].classList.add('tg');
+  if(s[pos+1]!==undefined&&s[pos+1]!==s[pos])keys[s[pos+1]].classList.add('nx');
+  $('big').textContent=nm(s[pos]);
+  $('sub').textContent='Nota '+(pos+1)+' / '+s.length;
+  $('bar').firstElementChild.style.width=(pos/s.length*100)+'%';
+}
+function persist(){st.last=si;st[si]=Object.assign(st[si]||{},{pos:pos});save()}
+
+function flash(m,cls){const k=keys[m];if(!k)return;k.classList.add(cls);setTimeout(()=>k.classList.remove(cls),350)}
+function heardShow(m){$('heard').textContent='Duyulan: '+nm(m)}
+
+let armed=true,lastM=-1;
+function tryNote(m,force){
+  const s=cur();if(pos>=s.length)return;
+  const t=s[pos],loose=$('loose').checked;
+  const ok=loose?(m%12===t%12):(m===t);
+  if(!ok){flash(m,'no');return}
+  if(!force&&!armed&&m===lastM)return;
+  flash(m,'ok');
+  lastM=m;armed=false;minR=1;
+  pos++;
+  if(pos>=s.length){const r=st[si]=st[si]||{};r.done=(r.done||0)+1;st.last=si;r.pos=0;save();render();pos=0;return}
+  persist();render();
+}
+
+let ctx,an,buf,minR=1,cand=-1,cnt=0,wrongAt=0;
+function detect(b,sr){
+  let e=0;for(let i=0;i<b.length;i++)e+=b[i]*b[i];
+  const rms=Math.sqrt(e/b.length);
+  if(rms<0.008)return{m:-1,rms};
+  const lo=Math.floor(sr/1200),hi=Math.floor(sr/200),n=b.length-hi;
+  const ns=new Float32Array(hi+2);let mx=0;
+  for(let lag=lo;lag<=hi;lag++){
+    let a=0,m=0;
+    for(let i=0;i<n;i++){a+=b[i]*b[i+lag];m+=b[i]*b[i]+b[i+lag]*b[i+lag]}
+    ns[lag]=m>0?2*a/m:0;if(ns[lag]>mx)mx=ns[lag];
+  }
+  if(mx<0.75)return{m:-1,rms};
+  for(let lag=lo+1;lag<hi;lag++){
+    if(ns[lag]>ns[lag-1]&&ns[lag]>=ns[lag+1]&&ns[lag]>=0.9*mx){
+      const a=ns[lag-1],c=ns[lag+1],p=(a-c)/(2*(a-2*ns[lag]+c)||1);
+      const f=sr/(lag+(isFinite(p)?p:0));
+      return{m:Math.round(69+12*Math.log2(f/440)),rms};
+    }
+  }
+  return{m:-1,rms};
+}
+function loop(){
+  an.getFloatTimeDomainData(buf);
+  const r=detect(buf,ctx.sampleRate);
+  if(r.rms<minR)minR=r.rms;
+  if(!armed&&r.rms>minR*1.6+0.004)armed=true;
+  if(r.m<0){cand=-1;cnt=0}
+  else{
+    if(r.m===cand)cnt++;else{cand=r.m;cnt=1}
+    if(cnt>=3){heardShow(cand);if(cand>=60&&cand<=83||$('loose').checked)tryNote(cand<60?cand+12*Math.ceil((60-cand)/12):cand>83?cand-12*Math.ceil((cand-83)/12):cand,false)}
+  }
+  requestAnimationFrame(loop);
+}
+$('mic').onclick=async()=>{
+  if(ctx){return}
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const src=ctx.createMediaStreamSource(s);
+    an=ctx.createAnalyser();an.fftSize=4096;src.connect(an);
+    buf=new Float32Array(an.fftSize);
+    $('mic').textContent='🎤 Dinleme açık';
+    $('msg').textContent='Dinliyorum. Mavi tuşu çal.';
+    loop();
+  }catch(e){
+    $('msg').textContent='Mikrofon açılamadı. Sayfayı doğrudan Chrome’da aç ve mikrofon iznini ver.';
+  }
+};
+sel.onchange=()=>{si=+sel.value;pos=(st[si]&&st[si].pos)||0;st.last=si;save();render()};
+$('reset').onclick=()=>{pos=0;persist();render()};
+$('skip').onclick=()=>{if(pos<cur().length){pos++;persist();render()}};
+render();
+</script>
+</body>
+</html>
