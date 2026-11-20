@@ -5,71 +5,85 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Piyano Öğren</title>
 <style>
-:root{--bg:#f6f4ef;--fg:#1c1b19;--card:#fff;--acc:#2563eb;--ok:#16a34a;--bad:#dc2626;--mut:#6b675f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17161a;--fg:#f1efe9;--card:#232228;--mut:#a09b92}}
-:root[data-theme="dark"]{--bg:#17161a;--fg:#f1efe9;--card:#232228;--mut:#a09b92}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:14px;max-width:760px;margin:0 auto}
-h1{font-size:20px;margin:4px 0 12px}
-.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px}
-select,button{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid #8884;background:var(--card);color:var(--fg)}
+:root{--bg:#f6f4ef;--fg:#1c1b19;--card:#fff;--acc:#2563eb;--mut:#6b675f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121115;--fg:#f1efe9;--card:#232228;--mut:#a09b92}}
+:root[data-theme="dark"]{--bg:#121115;--fg:#f1efe9;--card:#232228;--mut:#a09b92}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;height:100%;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:6px 8px;box-sizing:border-box;overflow:hidden}
+#top{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:14px;margin-bottom:6px}
+select,button{font:inherit;padding:7px 10px;border-radius:9px;border:1px solid #8886;background:var(--card);color:var(--fg)}
+select{max-width:44vw}
 button.p{background:var(--acc);color:#fff;border:0}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-#big{font-size:56px;font-weight:700;text-align:center;line-height:1.1}
-#sub{text-align:center;color:var(--mut);min-height:22px}
-#bar{height:8px;border-radius:4px;background:#8883;overflow:hidden;margin-top:10px}
-#bar i{display:block;height:100%;background:var(--acc);width:0}
-#heard{text-align:center;font-size:18px;min-height:26px;margin-top:6px}
-#kbw{overflow-x:auto}
-#kb{position:relative;height:190px;min-width:560px;user-select:none;touch-action:manipulation}
-#kb div{position:absolute;top:0;box-sizing:border-box;border-radius:0 0 6px 6px}
-.w{height:100%;background:#fff;border:1px solid #333;color:#444;display:flex;align-items:flex-end;justify-content:center;font-size:11px;padding-bottom:4px}
+label{color:var(--mut)}
+#info{font-weight:700;font-size:18px;margin-left:auto}
+#heard{color:var(--mut)}
+#stage{flex:1;min-height:0;position:relative;background:var(--card);border-radius:10px 10px 0 0;overflow:hidden}
+#cv{position:absolute;inset:0;width:100%;height:100%}
+#kb{position:relative;height:clamp(100px,30vh,240px);user-select:none;touch-action:manipulation}
+#kb div{position:absolute;top:0;box-sizing:border-box;border-radius:0 0 5px 5px}
+.w{height:100%;background:#fff;border:1px solid #333;color:#555;display:flex;align-items:flex-end;justify-content:center;font-size:clamp(8px,1.5vw,13px);padding-bottom:3px}
 .b{height:62%;background:#151515;z-index:2}
-.w.nx{background:#dbe7ff}.b.nx{background:#3b5aa8}
 .w.tg{background:#3b82f6;color:#fff}.b.tg{background:#2563eb}
 .w.ok{background:#4ade80!important}.b.ok{background:#16a34a!important}
 .w.no{background:#fca5a5!important}.b.no{background:#dc2626!important}
-label{color:var(--mut);font-size:14px}
 </style>
 </head>
 <body>
-<h1>🎹 Piyano Öğren</h1>
-<div class="card">
-  <div class="row">
-    <select id="song"></select>
-    <button id="mic" class="p">Dinlemeyi başlat</button>
-    <button id="reset">Baştan</button>
-    <button id="skip">Atla</button>
-  </div>
-  <div id="msg" style="color:var(--mut);font-size:14px;margin-top:8px">Telefonu piyanonun yanına koy, dinlemeyi başlat ve mavi tuşu çal. Tuşlara dokunarak da deneyebilirsin.</div>
+<div id="top">
+  <select id="song"></select>
+  <button id="mic" class="p">🎤 Başlat</button>
+  <button id="reset">Baştan</button>
+  <button id="skip">Atla</button>
+  <button id="add">+ Şarkı</button>
+  <label><input type="checkbox" id="loose" checked> Oktav fark etmesin</label>
+  <span id="info">–</span>
+  <span id="heard"></span>
 </div>
-<div class="card">
-  <div id="sub"></div>
-  <div id="big">–</div>
-  <div id="heard"></div>
-  <div id="bar"><i></i></div>
-  <div id="stat" style="text-align:center;color:var(--mut);font-size:14px;margin-top:8px"></div>
-</div>
-<div class="card" id="kbw"><div id="kb"></div></div>
-<label><input type="checkbox" id="loose" checked> Oktav fark etmesin (başlangıç için önerilir)</label>
+<div id="stage"><canvas id="cv"></canvas></div>
+<div id="kb"></div>
 
 <script>
 const N=['Do','Do♯','Re','Re♯','Mi','Fa','Fa♯','Sol','Sol♯','La','La♯','Si'];
 const nm=m=>N[m%12]+(Math.floor(m/12)-1);
-const SONGS=[
- {n:'Sıcak Çörek (en kolay)',s:[64,62,60,64,62,60,60,60,60,60,62,62,62,62,64,62,60]},
- {n:'Neşeye Övgü',s:[64,64,65,67,67,65,64,62,60,60,62,64,64,62,62,64,64,65,67,67,65,64,62,60,60,62,64,62,60,60]},
- {n:'Twinkle Twinkle (Ah Küçük Yıldız)',s:[60,60,67,67,69,69,67,65,65,64,64,62,62,60,67,67,65,65,64,64,62,67,67,65,65,64,64,62,60,60,67,67,69,69,67,65,65,64,64,62,62,60]},
- {n:'İyi ki Doğdun (Happy Birthday)',s:[67,67,69,67,72,71,67,67,69,67,74,72,67,67,79,76,72,71,69,77,77,76,72,74,72]}
+// Format: nota+oktav, sonra :süre (beat). Örn: c4 f#4:2
+const BASE=[
+['🟢 Sıcak Çörek','e4 d4 c4:2 e4 d4 c4:2 c4 c4 c4 c4 d4 d4 d4 d4 e4 d4 c4:2'],
+['🟢 Gam (Do-Do)','c4 d4 e4 f4 g4 a4 b4 c5 c5 b4 a4 g4 f4 e4 d4 c4:2'],
+['🟢 Beş parmak egzersizi','c4 d4 e4 f4 g4 f4 e4 d4 c4 e4 g4 e4 c4:2 g4 f4 e4 d4 c4:2'],
+['🟢 Mary Had a Little Lamb','e4 d4 c4 d4 e4 e4 e4:2 d4 d4 d4:2 e4 g4 g4:2 e4 d4 c4 d4 e4 e4 e4 e4 d4 d4 e4 d4 c4:2'],
+['🟢 Ah Küçük Yıldız (Twinkle)','c4 c4 g4 g4 a4 a4 g4:2 f4 f4 e4 e4 d4 d4 c4:2 g4 g4 f4 f4 e4 e4 d4:2 g4 g4 f4 f4 e4 e4 d4:2 c4 c4 g4 g4 a4 a4 g4:2 f4 f4 e4 e4 d4 d4 c4:2'],
+['🟢 Lightly Row','g4 e4 e4:2 f4 d4 d4:2 c4 d4 e4 f4 g4 g4 g4:2 g4 e4 e4 e4 f4 d4 d4 d4 c4 e4 g4 g4 e4:2'],
+['🟢 Au Clair de la Lune','c4 c4 c4 d4 e4:2 d4:2 c4 e4 d4 d4 c4:4 c4 c4 c4 d4 e4:2 d4:2 c4 e4 d4 d4 c4:4'],
+['🟢 Frère Jacques','c5 d5 e5 c5 c5 d5 e5 c5 e5 f5 g5:2 e5 f5 g5:2 g5:.5 a5:.5 g5:.5 f5:.5 e5 c5 g5:.5 a5:.5 g5:.5 f5:.5 e5 c5 c5 g4 c5:2 c5 g4 c5:2'],
+['🟡 Neşeye Övgü (Ode to Joy)','e4 e4 f4 g4 g4 f4 e4 d4 c4 c4 d4 e4 e4:1.5 d4:.5 d4:2 e4 e4 f4 g4 g4 f4 e4 d4 c4 c4 d4 e4 d4:1.5 c4:.5 c4:2'],
+['🟡 Row Row Row Your Boat','c4:2 c4:2 c4:1.5 d4:.5 e4:3 e4:1.5 d4:.5 e4:1.5 f4:.5 g4:4 c5 c5 c5 g4 g4 g4 e4 e4 e4 c4 c4 c4 g4:1.5 f4:.5 e4:1.5 d4:.5 c4:4'],
+['🟡 Old MacDonald','c5 c5 c5 g4 a4 a4 g4:2 e5 e5 d5 d5 c5:2'],
+['🟡 London Bridge','g4:1.5 a4:.5 g4 f4 e4 f4 g4:2 d4 e4 f4:2 e4 f4 g4:2 g4:1.5 a4:.5 g4 f4 e4 f4 g4 d4 g4 e4 c4:2'],
+['🟡 Itsy Bitsy Spider','g4 c5 c5 c5 d5 e5:2 e5 e5 d5 c5 d5 e5 c5:2'],
+['🟡 Oh Susanna','c4 d4 e4 g4 g4:1.5 a4:.5 g4 e4 c4 d4 e4 e4 d4 c4 d4:3 c4 d4 e4 g4 g4:1.5 a4:.5 g4 e4 c4 d4 e4 e4 d4 d4 c4:3'],
+['🟡 Yankee Doodle','c5 c5 d5 e5 c5 e5 d5 g4 c5 c5 d5 e5 c5:2 b4:2 c5 c5 d5 e5 f5 e5 d5 c5 b4 g4 a4 b4 c5:2 c5:2'],
+['🟡 Jingle Bells','e4 e4 e4:2 e4 e4 e4:2 e4 g4 c4:1.5 d4:.5 e4:4 f4 f4 f4:1.5 f4:.5 f4 e4 e4 e4:.5 e4:.5 e4 d4 d4 e4 d4:2 g4:2'],
+['🟡 Doğum günü (Happy Birthday)','g4:.75 g4:.25 a4 g4 c5 b4:2 g4:.75 g4:.25 a4 g4 d5 c5:2 g4:.75 g4:.25 g5 e5 c5 b4 a4 f5:.75 f5:.25 e5 c5 d5 c5:2'],
+['🟡 When the Saints','c4 e4 f4 g4:4 c4 e4 f4 g4:4 c4 e4 f4 g4:2 e4:2 c4:2 e4:2 d4:4 e4 e4 d4 c4 c4 e4 g4 g4 f4:4 e4 f4 g4 e4 c4 d4 c4:4'],
+['🟠 Amazing Grace','g4 c5:2 e5:.5 c5:.5 e5:2 d5 c5:2 a4 g4:3 g4 c5:2 e5:.5 c5:.5 e5:2 d5 g5:3'],
+['🟠 Silent Night','g4:1.5 a4:.5 g4 e4:3 g4:1.5 a4:.5 g4 e4:3 d5:2 d5 b4:3 c5:2 c5 g4:3 a4:2 a4 c5:1.5 b4:.5 a4 g4:1.5 a4:.5 g4 e4:3 a4:2 a4 c5:1.5 b4:.5 a4 g4:1.5 a4:.5 g4 e4:3 d5:2 d5 f5:1.5 d5:.5 b4 c5:3 e5:3 c5 g4 e4 g4:1.5 f4:.5 d4 c4:3'],
+['🟠 We Wish You a Merry Christmas','d4 g4 g4:.5 a4:.5 g4:.5 f4:.5 e4 e4 e4 a4 a4:.5 b4:.5 a4:.5 g4:.5 f4 d4 d4 b4 b4:.5 c5:.5 b4:.5 a4:.5 g4 e4 d4:.5 d4:.5 e4 a4 f4 g4:3'],
+['🔴 Greensleeves','a4 c5:2 d5 e5:1.5 f5:.5 e5 d5:2 b4 g4:1.5 a4:.5 b4 c5:2 a4 a4:1.5 g#4:.5 a4 b4:2 g#4 e4:2 a4 c5:2 d5 e5:1.5 f5:.5 e5 d5:2 b4 g4:1.5 a4:.5 b4 c5:1.5 b4:.5 a4 g#4:1.5 f#4:.5 g#4 a4:3'],
+['🔴 Für Elise','e5 d#5 e5 d#5 e5 b4 d5 c5 a4:2 c4 e4 a4 b4:2 e4 g#4 b4 c5:2 e4 e5 d#5 e5 d#5 e5 b4 d5 c5 a4:2 c4 e4 a4 b4:2 e4 c5 b4 a4:3']
 ];
 const $=id=>document.getElementById(id);
-let si=0,pos=0,st={};
-try{st=JSON.parse(localStorage.getItem('piyano')||'{}')}catch(e){}
-const save=()=>{try{localStorage.setItem('piyano',JSON.stringify(st))}catch(e){}};
-const cur=()=>SONGS[si].s;
+let st={};try{st=JSON.parse(localStorage.getItem('piyano2')||'{}')}catch(e){}
+const save=()=>{try{localStorage.setItem('piyano2',JSON.stringify(st))}catch(e){}};
+const SL=()=>BASE.concat(st.custom||[]);
+const L={c:0,d:2,e:4,f:5,g:7,a:9,b:11};
+function parse(s){let t=0;return s.trim().split(/\s+/).map(x=>{
+  const m=/^([a-g])(#?)(\d)(?::([\d.]+))?$/i.exec(x);if(!m)return null;
+  const d=+(m[4]||1),n={m:12*(+m[3]+1)+L[m[1].toLowerCase()]+(m[2]?1:0),t,d};t+=d;return n}).filter(n=>n&&n.m>=60&&n.m<=83)}
+let si=0,pos=0,S=[],vis=0;
 const sel=$('song');
-SONGS.forEach((x,i)=>{const o=document.createElement('option');o.value=i;o.textContent=x.n;sel.appendChild(o)});
-si=st.last||0;sel.value=si;pos=(st[si]&&st[si].pos)||0;
+function fillSel(){sel.innerHTML='';SL().forEach((x,i)=>{const o=document.createElement('option');o.value=i;o.textContent=x[0];sel.appendChild(o)})}
+function load(i){si=i;sel.value=i;S=parse(SL()[i][1]);const r=st[SL()[i][0]]||{};pos=Math.min(r.pos||0,S.length-1);vis=S.length?S[pos].t:0;st.last=SL()[i][0];save();render()}
+function persist(){const k=SL()[si][0];st[k]=Object.assign(st[k]||{},{pos});save()}
 
 const kb=$('kb'),keys={};
 const isB=m=>[1,3,6,8,10].includes(m%12);
@@ -78,48 +92,60 @@ for(let m=60;m<=83;m++){
   const d=document.createElement('div');
   if(!isB(m)){d.className='w';d.style.left=(wi*W)+'%';d.style.width=W+'%';d.textContent=N[m%12];wi++}
   else{d.className='b';d.style.left=(wi*W-W*0.3)+'%';d.style.width=(W*0.6)+'%'}
-  d.onpointerdown=()=>{heardShow(m);tryNote(m,true)};
+  d.onpointerdown=()=>{$('heard').textContent='Dokunulan: '+nm(m);tryNote(m,true)};
   kb.appendChild(d);keys[m]=d;
 }
-
 function render(){
-  Object.values(keys).forEach(k=>k.classList.remove('tg','nx'));
-  const s=cur();
-  const rec=st[si]||{};
-  $('stat').textContent='Tamamlanma sayısı: '+(rec.done||0);
-  if(pos>=s.length){$('big').textContent='🎉';$('sub').textContent='Şarkı bitti! Tebrikler';$('bar').firstElementChild.style.width='100%';return}
-  keys[s[pos]].classList.add('tg');
-  if(s[pos+1]!==undefined&&s[pos+1]!==s[pos])keys[s[pos+1]].classList.add('nx');
-  $('big').textContent=nm(s[pos]);
-  $('sub').textContent='Nota '+(pos+1)+' / '+s.length;
-  $('bar').firstElementChild.style.width=(pos/s.length*100)+'%';
+  Object.values(keys).forEach(k=>k.classList.remove('tg'));
+  if(!S.length){$('info').textContent='–';return}
+  const n=S[pos];keys[n.m].classList.add('tg');
+  const done=(st[SL()[si][0]]||{}).done||0;
+  $('info').textContent=nm(n.m)+'  ('+(pos+1)+'/'+S.length+(done?' · ✓'+done:'')+')';
 }
-function persist(){st.last=si;st[si]=Object.assign(st[si]||{},{pos:pos});save()}
+function flash(m,c){const k=keys[m];if(!k)return;k.classList.add(c);setTimeout(()=>k.classList.remove(c),300)}
 
-function flash(m,cls){const k=keys[m];if(!k)return;k.classList.add(cls);setTimeout(()=>k.classList.remove(cls),350)}
-function heardShow(m){$('heard').textContent='Duyulan: '+nm(m)}
-
-let armed=true,lastM=-1;
+let armed=true,lastM=-1,minR=1;
 function tryNote(m,force){
-  const s=cur();if(pos>=s.length)return;
-  const t=s[pos],loose=$('loose').checked;
-  const ok=loose?(m%12===t%12):(m===t);
+  if(!S.length)return;
+  const t=S[pos].m,ok=$('loose').checked?(m%12===t%12):(m===t);
   if(!ok){flash(m,'no');return}
   if(!force&&!armed&&m===lastM)return;
-  flash(m,'ok');
-  lastM=m;armed=false;minR=1;
-  pos++;
-  if(pos>=s.length){const r=st[si]=st[si]||{};r.done=(r.done||0)+1;st.last=si;r.pos=0;save();render();pos=0;return}
+  flash(t,'ok');lastM=m;armed=false;minR=1;pos++;
+  if(pos>=S.length){const k=SL()[si][0],r=st[k]=st[k]||{};r.done=(r.done||0)+1;r.pos=0;save();pos=0;vis=0;$('info').textContent='🎉 Bitti!';setTimeout(render,1800);return}
   persist();render();
 }
 
-let ctx,an,buf,minR=1,cand=-1,cnt=0,wrongAt=0;
+// Düşen notalar
+const cv=$('cv');
+function draw(){
+  const w=cv.clientWidth,h=cv.clientHeight,dpr=window.devicePixelRatio||1;
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+  const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);
+  if(S.length){
+    vis+=(S[pos].t-vis)*0.18;
+    const unit=h/7;
+    c.textAlign='center';c.textBaseline='middle';
+    for(let i=0;i<S.length;i++){
+      const n=S[i],bot=h-(n.t-vis)*unit,top=bot-n.d*unit;
+      if(top>h||bot<0)continue;
+      const k=keys[n.m],x=k.offsetLeft+1,kw=k.offsetWidth-2,bk=isB(n.m);
+      c.fillStyle=i===pos?(bk?'#7c3aed':'#2563eb'):(bk?'#a78bfa':'#60a5fa');
+      c.globalAlpha=i<pos?0.35:1;
+      c.beginPath();if(c.roundRect)c.roundRect(x,top+2,kw,Math.max(bot-top-4,6),6);else c.rect(x,top+2,kw,Math.max(bot-top-4,6));c.fill();
+      c.globalAlpha=1;
+      if(kw>16&&bot-top>18){c.fillStyle='#fff';c.font='600 '+Math.min(14,kw*0.55)+'px system-ui';c.fillText(N[n.m%12],x+kw/2,bot-12)}
+    }
+  }
+  requestAnimationFrame(draw);
+}
+
+// Mikrofon
+let ctx,an,buf,cand=-1,cnt=0;
 function detect(b,sr){
   let e=0;for(let i=0;i<b.length;i++)e+=b[i]*b[i];
   const rms=Math.sqrt(e/b.length);
   if(rms<0.008)return{m:-1,rms};
-  const lo=Math.floor(sr/1200),hi=Math.floor(sr/200),n=b.length-hi;
-  const ns=new Float32Array(hi+2);let mx=0;
+  const lo=Math.floor(sr/1200),hi=Math.floor(sr/200),n=b.length-hi,ns=new Float32Array(hi+2);let mx=0;
   for(let lag=lo;lag<=hi;lag++){
     let a=0,m=0;
     for(let i=0;i<n;i++){a+=b[i]*b[i+lag];m+=b[i]*b[i]+b[i+lag]*b[i+lag]}
@@ -129,8 +155,7 @@ function detect(b,sr){
   for(let lag=lo+1;lag<hi;lag++){
     if(ns[lag]>ns[lag-1]&&ns[lag]>=ns[lag+1]&&ns[lag]>=0.9*mx){
       const a=ns[lag-1],c=ns[lag+1],p=(a-c)/(2*(a-2*ns[lag]+c)||1);
-      const f=sr/(lag+(isFinite(p)?p:0));
-      return{m:Math.round(69+12*Math.log2(f/440)),rms};
+      return{m:Math.round(69+12*Math.log2((sr/(lag+(isFinite(p)?p:0)))/440)),rms};
     }
   }
   return{m:-1,rms};
@@ -141,31 +166,32 @@ function loop(){
   if(r.rms<minR)minR=r.rms;
   if(!armed&&r.rms>minR*1.6+0.004)armed=true;
   if(r.m<0){cand=-1;cnt=0}
-  else{
-    if(r.m===cand)cnt++;else{cand=r.m;cnt=1}
-    if(cnt>=3){heardShow(cand);if(cand>=60&&cand<=83||$('loose').checked)tryNote(cand<60?cand+12*Math.ceil((60-cand)/12):cand>83?cand-12*Math.ceil((cand-83)/12):cand,false)}
-  }
+  else{if(r.m===cand)cnt++;else{cand=r.m;cnt=1}
+    if(cnt>=3){$('heard').textContent='Duyulan: '+nm(cand);tryNote(cand,false)}}
   requestAnimationFrame(loop);
 }
 $('mic').onclick=async()=>{
-  if(ctx){return}
+  if(ctx)return;
   try{
     const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     ctx=new (window.AudioContext||window.webkitAudioContext)();
-    const src=ctx.createMediaStreamSource(s);
-    an=ctx.createAnalyser();an.fftSize=4096;src.connect(an);
-    buf=new Float32Array(an.fftSize);
-    $('mic').textContent='🎤 Dinleme açık';
-    $('msg').textContent='Dinliyorum. Mavi tuşu çal.';
-    loop();
-  }catch(e){
-    $('msg').textContent='Mikrofon açılamadı. Sayfayı doğrudan Chrome’da aç ve mikrofon iznini ver.';
-  }
+    const src=ctx.createMediaStreamSource(s);an=ctx.createAnalyser();an.fftSize=4096;src.connect(an);
+    buf=new Float32Array(an.fftSize);$('mic').textContent='🎤 Dinliyor';loop();
+  }catch(e){$('heard').textContent='Mikrofon açılamadı, izni kontrol et'}
 };
-sel.onchange=()=>{si=+sel.value;pos=(st[si]&&st[si].pos)||0;st.last=si;save();render()};
-$('reset').onclick=()=>{pos=0;persist();render()};
-$('skip').onclick=()=>{if(pos<cur().length){pos++;persist();render()}};
-render();
+sel.onchange=()=>load(+sel.value);
+$('reset').onclick=()=>{pos=0;vis=0;persist();render()};
+$('skip').onclick=()=>{if(pos<S.length-1){pos++;persist();render()}};
+$('add').onclick=()=>{
+  const name=prompt('Şarkı adı:');if(!name)return;
+  const s=prompt('Notaları yaz (Do4 = c4, Fa♯4 = f#4, uzun nota = c4:2):\nÖrn: c4 d4 e4 c4 e4:2 d4');if(!s)return;
+  if(parse(s).length<2){alert('Notalar okunamadı (Do4-Si5 aralığı)');return}
+  st.custom=(st.custom||[]).concat([['⭐ '+name,s]]);save();fillSel();load(SL().length-1);
+};
+fillSel();
+const last=SL().findIndex(x=>x[0]===st.last);
+load(last>=0?last:0);
+draw();
 </script>
 </body>
 </html>
