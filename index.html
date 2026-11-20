@@ -31,7 +31,8 @@ label{color:var(--mut)}
 <body>
 <div id="top">
   <select id="song"></select>
-  <button id="mic" class="p">🎤 Başlat</button>
+  <button id="midi" class="p">🎹 MIDI bağla</button>
+  <button id="mic">🎤 Mikrofon</button>
   <button id="reset">Baştan</button>
   <button id="skip">Atla</button>
   <button id="add">+ Şarkı</button>
@@ -78,22 +79,31 @@ const SL=()=>BASE.concat(st.custom||[]);
 const L={c:0,d:2,e:4,f:5,g:7,a:9,b:11};
 function parse(s){let t=0;return s.trim().split(/\s+/).map(x=>{
   const m=/^([a-g])(#?)(\d)(?::([\d.]+))?$/i.exec(x);if(!m)return null;
-  const d=+(m[4]||1),n={m:12*(+m[3]+1)+L[m[1].toLowerCase()]+(m[2]?1:0),t,d};t+=d;return n}).filter(n=>n&&n.m>=60&&n.m<=83)}
+  const d=+(m[4]||1),n={m:12*(+m[3]+1)+L[m[1].toLowerCase()]+(m[2]?1:0),t,d};t+=d;return n}).filter(n=>n&&n.m>=24&&n.m<=108)}
 let si=0,pos=0,S=[],vis=0;
 const sel=$('song');
 function fillSel(){sel.innerHTML='';SL().forEach((x,i)=>{const o=document.createElement('option');o.value=i;o.textContent=x[0];sel.appendChild(o)})}
-function load(i){si=i;sel.value=i;S=parse(SL()[i][1]);const r=st[SL()[i][0]]||{};pos=Math.min(r.pos||0,S.length-1);vis=S.length?S[pos].t:0;st.last=SL()[i][0];save();render()}
+function load(i){si=i;sel.value=i;S=parse(SL()[i][1]);buildKb();const r=st[SL()[i][0]]||{};pos=Math.min(r.pos||0,S.length-1);vis=S.length?S[pos].t:0;st.last=SL()[i][0];save();render()}
 function persist(){const k=SL()[si][0];st[k]=Object.assign(st[k]||{},{pos});save()}
 
-const kb=$('kb'),keys={};
+const kb=$('kb');let keys={};
 const isB=m=>[1,3,6,8,10].includes(m%12);
-let wi=0;const W=100/14;
-for(let m=60;m<=83;m++){
-  const d=document.createElement('div');
-  if(!isB(m)){d.className='w';d.style.left=(wi*W)+'%';d.style.width=W+'%';d.textContent=N[m%12];wi++}
-  else{d.className='b';d.style.left=(wi*W-W*0.3)+'%';d.style.width=(W*0.6)+'%'}
-  d.onpointerdown=()=>{$('heard').textContent='Dokunulan: '+nm(m);tryNote(m,true)};
-  kb.appendChild(d);keys[m]=d;
+function buildKb(){
+  let lo=60,hi=83;
+  if(S.length){lo=Math.min(...S.map(n=>n.m));hi=Math.max(...S.map(n=>n.m))}
+  lo-=lo%12;hi=hi-hi%12+11;
+  if(hi-lo<23)hi=lo+23;
+  hi=Math.min(hi,108);lo=Math.max(lo,24);
+  kb.innerHTML='';keys={};
+  let nw=0;for(let m=lo;m<=hi;m++)if(!isB(m))nw++;
+  const W=100/nw;let wi=0;
+  for(let m=lo;m<=hi;m++){
+    const d=document.createElement('div');
+    if(!isB(m)){d.className='w';d.style.left=(wi*W)+'%';d.style.width=W+'%';d.textContent=N[m%12];wi++}
+    else{d.className='b';d.style.left=(wi*W-W*0.3)+'%';d.style.width=(W*0.6)+'%'}
+    d.onpointerdown=()=>{$('heard').textContent='Dokunulan: '+nm(m);tryNote(m,true)};
+    kb.appendChild(d);keys[m]=d;
+  }
 }
 function render(){
   Object.values(keys).forEach(k=>k.classList.remove('tg'));
@@ -185,8 +195,17 @@ $('skip').onclick=()=>{if(pos<S.length-1){pos++;persist();render()}};
 $('add').onclick=()=>{
   const name=prompt('Şarkı adı:');if(!name)return;
   const s=prompt('Notaları yaz (Do4 = c4, Fa♯4 = f#4, uzun nota = c4:2):\nÖrn: c4 d4 e4 c4 e4:2 d4');if(!s)return;
-  if(parse(s).length<2){alert('Notalar okunamadı (Do4-Si5 aralığı)');return}
+  if(parse(s).length<2){alert('Notalar okunamadı (Do1-Do8 arası olmalı)');return}
   st.custom=(st.custom||[]).concat([['⭐ '+name,s]]);save();fillSel();load(SL().length-1);
+};
+$('midi').onclick=async()=>{
+  if(!navigator.requestMIDIAccess){$('heard').textContent='Bu tarayıcı MIDI desteklemiyor';return}
+  try{
+    const a=await navigator.requestMIDIAccess();
+    const hook=()=>{let c=0;a.inputs.forEach(i=>{c++;i.onmidimessage=e=>{const[s,n,v]=e.data;if((s&0xf0)===0x90&&v>0){$('heard').textContent='Çalınan: '+nm(n);tryNote(n,true)}}});
+      $('midi').textContent=c?'🎹 MIDI: '+c+' cihaz':'🎹 Cihaz bulunamadı'};
+    a.onstatechange=hook;hook();
+  }catch(e){$('heard').textContent='MIDI izni verilmedi'}
 };
 fillSel();
 const last=SL().findIndex(x=>x[0]===st.last);
